@@ -65,8 +65,18 @@ def add_expense(group_id, payer_id, description, amount, date):
     return expense["id"]
 
 
+def remove_member_expenses(member_id):
+    """Delete all expenses paid by this member."""
+    kept = []
+    for expense in db.load_table("expenses"):
+        if expense["payer_id"] != str(member_id):
+            kept.append(expense)
+    db.save_table("expenses", kept)
+
+
 def remove_member(member_id):
-    """Delete one member from their group."""
+    """Delete one member from their group and remove all expenses they paid."""
+    remove_member_expenses(member_id)
     kept = []
     for member in db.load_table("members"):
         if member["id"] != str(member_id):
@@ -75,10 +85,19 @@ def remove_member(member_id):
 
 
 def compute_shares(amount, member_ids, payer_id):
-    """Split one amount between members and return {member_id: share}."""
+    """Split one amount between members and return {member_id: share}.
+
+    Every share is rounded to two decimal places. The payer absorbs any
+    leftover cent so that the shares always add up to exactly the total.
+    """
+    base = round(amount / len(member_ids), 2)
     shares = {}
+    others_total = 0.0
     for member_id in member_ids:
-        shares[member_id] = amount / len(member_ids)
+        if member_id != payer_id:
+            shares[member_id] = base
+            others_total += base
+    shares[payer_id] = round(amount - others_total, 2)
     return shares
 
 
