@@ -2,6 +2,8 @@
 
 import db
 
+CATEGORIES = ["rent", "groceries", "fun", "transport", "other"]
+
 
 def get_groups():
     """Return every group as a list of dicts."""
@@ -51,7 +53,7 @@ def add_member(group_id, name):
     return member["id"]
 
 
-def add_expense(group_id, payer_id, description, amount, date):
+def add_expense(group_id, payer_id, description, amount, date, category="other"):
     """Save a new expense, paid by one member for the whole group, and return its id."""
     expense = {
         "id": db.next_id("expenses"),
@@ -60,6 +62,7 @@ def add_expense(group_id, payer_id, description, amount, date):
         "description": description.strip(),
         "amount": amount,
         "date": date,
+        "category": category,
     }
     db.append_row("expenses", expense)
     return expense["id"]
@@ -140,6 +143,15 @@ def expense_rows(group_id):
             "Date": expense["date"],
         })
     return rows
+
+
+def category_totals(group_id):
+    """Return {category: total} for all categories that have at least one expense in this group."""
+    totals = {}
+    for expense in get_group_expenses(group_id):
+        cat = expense["category"]
+        totals[cat] = totals.get(cat, 0.0) + float(expense["amount"])
+    return totals
 
 
 def settle_up(group_id):

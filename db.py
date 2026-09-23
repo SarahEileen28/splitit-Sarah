@@ -10,7 +10,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 COLUMNS = {
     "groups": ["id", "name", "created_on"],
     "members": ["id", "group_id", "name"],
-    "expenses": ["id", "group_id", "payer_id", "description", "amount", "date"],
+    "expenses": ["id", "group_id", "payer_id", "description", "amount", "date", "category"],
 }
 
 
